@@ -1,1 +1,6 @@
-{"rewrites": [{"source": "/", "destination": "/ella-portfolio/index.html"}]}
+{
+    "rewrites": [
+          { "source": "/", "destination": "/ella-portfolio/index.html" },
+          { "source": "/hero-labels/:path*", "destination": "/ella-portfolio/hero-labels/:path*" }
+    ]
+}

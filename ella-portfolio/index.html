@@ -108,7 +108,7 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 .hero-labels{position:absolute;inset:0;pointer-events:none;z-index:40}
 .hero-label{position:absolute;pointer-events:auto;transition:transform .4s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(3px 3px 0 rgba(0,0,0,.15))}
 .hero-label:hover{transform:scale(1.08) rotate(-2deg)}
-.hero-label img{display:block;width:100%}
+.hero-label img,.hero-label svg{display:block;width:100%}
 .hero-label--creative{width:59%;top:10%;left:-24%;z-index:2;animation:labelFloat1 3s ease-in-out infinite}
 .hero-label--art-director{width:58%;top:18%;left:-30%;z-index:1;animation:labelFloat2 3.5s ease-in-out infinite}
 .hero-label--design{width:48%;top:46%;right:-18%;z-index:1;animation:labelFloat3 2.8s ease-in-out infinite}
@@ -2636,11 +2636,11 @@ function HeroTama({onBtn, mood, blinking, reacting, reactionTarget}) {
   return (
     <div style={{position:'relative'}}>
       <div className="hero-labels">
-        <div className="hero-label hero-label--creative"><img src="hero-labels/creative.svg" alt="Creative"/></div>
-        <div className="hero-label hero-label--art-director"><img src="hero-labels/art-director.svg" alt="Art Director"/></div>
-        <div className="hero-label hero-label--design"><img src="hero-labels/design.svg" alt="Design"/></div>
-        <div className="hero-label hero-label--ideas"><img src="hero-labels/idea-creation.svg" alt="Idea Creation"/></div>
-        <div className="hero-label hero-label--photography"><img src="hero-labels/photography.svg" alt="Photography"/></div>
+        <div className="hero-label hero-label--creative"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#fe4633" stroke="#000" strokeMiterlimit="10" x="81.11" y="12.82" width="206.96" height="86.57" rx="12" ry="12"/><text fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(105.02 70.02)"><tspan x="0" y="0">Creative</tspan></text></svg></div>
+        <div className="hero-label hero-label--art-director"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#4100f6" stroke="#000" strokeMiterlimit="10" x="13.34" y="12.82" width="342.5" height="86.57" rx="43.28" ry="43.28"/><text fill="#cef664" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(56.33 71.02)"><tspan x="0" y="0">Art Director</tspan></text></svg></div>
+        <div className="hero-label hero-label--design"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#caf464" stroke="#000" strokeMiterlimit="10" x="100.37" y="12.82" width="168.44" height="86.57" rx="12" ry="12"/><text fill="#4100f6" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(125.54 70.02)"><tspan x="0" y="0">Design</tspan></text></svg></div>
+        <div className="hero-label hero-label--ideas"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#9aefe0" stroke="#000" strokeMiterlimit="10" x="20.79" y="12.82" width="327.6" height="86.57" rx="43.28" ry="43.28"/><text fill="#fe4633" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(61.88 68.62)"><tspan x="0" y="0">Idea creation</tspan></text></svg></div>
+        <div className="hero-label hero-label--photography"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#f137a6" stroke="#000" strokeMiterlimit="10" x="32.99" y="12.82" width="303.21" height="86.57" rx="12" ry="12"/><text fill="#9bf0e2" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(69.42 70.02)"><tspan x="0" y="0">Photography</tspan></text></svg></div>
       </div>
       <div className={`tama-shell ${animClass}`}>
         <div className="tama-frame">

@@ -11,8 +11,10 @@
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://open.spotify.com">
+<script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
 <!-- Critical fonts loaded immediately (hero + loading screen) -->
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Press+Start+2P&family=Work+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Montserrat:wght@700;900&family=Press+Start+2P&family=Staatliches&family=Work+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <!-- Secondary fonts loaded async (section titles) -->
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Antic+Didone&family=DotGothic16&family=Libre+Bodoni:ital,wght@1,400;1,700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Antic+Didone&family=DotGothic16&family=Libre+Bodoni:ital,wght@1,400;1,700&display=swap" rel="stylesheet"></noscript>
@@ -95,20 +97,64 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 @media(max-width:768px){.nav-label{font-size:.4rem;padding:10px 4px;letter-spacing:.02em}.nav-hide-m{display:none}}
 
 /* ===== HERO ===== */
-.hero-outer{background-color:#ffcfc8;background-image:linear-gradient(rgba(25,20,20,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(25,20,20,.08) 1px,transparent 1px);background-size:20px 20px;position:relative;z-index:2}
-.hero{position:relative;display:flex;flex-direction:column;align-items:center;overflow:visible;padding-top:0;padding-bottom:0;z-index:10}
-.hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60%;height:60%;background-image:linear-gradient(45deg,rgba(255,255,255,.3)25%,transparent 25%,transparent 75%,rgba(255,255,255,.3)75%),linear-gradient(45deg,rgba(255,255,255,.3)25%,transparent 25%,transparent 75%,rgba(255,255,255,.3)75%);background-size:40px 40px;background-position:0 0,20px 20px;opacity:.5;pointer-events:none;z-index:0}
+.hero-outer{background-color:var(--black);background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:20px 20px;position:relative;z-index:2}
+.hero{position:relative;display:block;overflow:visible;padding:1.5vh 0 0;min-height:100vh;z-index:10}
+.hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60%;height:60%;background-image:linear-gradient(45deg,rgba(255,255,255,.12)25%,transparent 25%,transparent 75%,rgba(255,255,255,.12)75%),linear-gradient(45deg,rgba(255,255,255,.12)25%,transparent 25%,transparent 75%,rgba(255,255,255,.12)75%);background-size:40px 40px;background-position:0 0,20px 20px;opacity:.35;pointer-events:none;z-index:0}
 
-.title-name-wrap{position:relative;width:100%;overflow:visible;z-index:3}
-.tama-float{position:relative;z-index:30;pointer-events:auto;display:flex;justify-content:center;padding:0;margin-bottom:clamp(-60px,-8vw,-100px)}
-@media(max-width:768px){.tama-float{margin-bottom:-40px}}
+.title-name-wrap{position:relative;width:100%;overflow:visible;z-index:3;padding-top:.5vh}
+.tama-pos{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;width:auto}
+.tama-pos>*{pointer-events:auto}
+.tama-float{position:relative;z-index:30;pointer-events:auto;display:flex;justify-content:center;padding:0}
+
+/* ===== HERO OBJECTS LAYER (draggable collage) ===== */
+.hero-objects{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:visible}
+.hero-obj{position:absolute;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;touch-action:none;cursor:grab;will-change:transform;filter:drop-shadow(6px 8px 12px rgba(0,0,0,.55))}
+.hero-obj.dragging{cursor:grabbing;z-index:40;transition:none !important;filter:drop-shadow(10px 14px 24px rgba(0,0,0,.7))}
+.hero-obj:not(.dragging){transition:transform .28s cubic-bezier(.22,1,.36,1),filter .3s}
+.hero-obj img{display:block;width:100%;height:auto;pointer-events:none;-webkit-user-drag:none}
+.hero-obj.bead{filter:drop-shadow(3px 4px 6px rgba(0,0,0,.45))}
+.hero-obj:hover:not(.dragging){filter:drop-shadow(8px 12px 16px rgba(0,0,0,.6)) brightness(1.05)}
+@media(max-width:900px){.hero-obj{filter:drop-shadow(3px 4px 8px rgba(0,0,0,.5))}}
+
+/* ===== VINYL PLAYER ===== */
+.vinyl-player{position:absolute;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;touch-action:none;cursor:grab;will-change:transform;filter:drop-shadow(8px 10px 14px rgba(0,0,0,.45));z-index:14;transform:translateZ(0)}
+.vinyl-player.dragging{cursor:grabbing;z-index:60;filter:none}
+.vinyl-player:not(.dragging){transition:transform .28s cubic-bezier(.22,1,.36,1)}
+.vinyl-stage{position:relative;width:100%;aspect-ratio:1623/1103}
+/* Vinyl slides within the stage. In the PNG, vinyl naturally sits on the right. */
+/* "Closed" state: translate fully left so only a sliver peeks from behind the cover. */
+.vinyl-slider{position:absolute;inset:0;z-index:1;transform:translateX(-18%);transition:transform 1.05s cubic-bezier(.6,.02,.3,1)}
+.vinyl-player.playing .vinyl-slider{transform:translateX(0);transition:transform 1.05s cubic-bezier(.22,1,.36,1) .1s}
+.vinyl-slider img{width:100%;height:100%;display:block;-webkit-user-drag:none;pointer-events:none;
+  /* Vinyl disc center within PNG ≈ (1088,551) of 1623×1103 → (67%, 50%) */
+  transform-origin:67% 50%;
+  will-change:transform}
+.vinyl-cover-img{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none;-webkit-user-drag:none;display:block}
+/* Cover center within PNG ≈ (551,551) of 1623×1103 → (34%, 50%) */
+.vinyl-play-btn{position:absolute;z-index:5;top:50%;left:34%;transform:translate(-50%,-50%);width:15%;aspect-ratio:1;border-radius:50%;background:rgba(0,0,0,.65);border:2px solid rgba(255,255,255,.95);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;padding:0;opacity:.75;transition:opacity .25s,background .2s,transform .2s;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.vinyl-play-btn:hover{background:rgba(0,0,0,.85);transform:translate(-50%,-50%) scale(1.1)}
+.vinyl-player:hover .vinyl-play-btn,.vinyl-player.playing .vinyl-play-btn,.vinyl-play-btn:focus-visible{opacity:1}
+.vinyl-play-btn svg{width:46%;height:46%;display:block}
+/* Progress ring around the play button during the 30s preview */
+.vinyl-progress-ring{position:absolute;top:50%;left:34%;transform:translate(-50%,-50%);width:17%;aspect-ratio:1;z-index:3;pointer-events:none;opacity:0;transition:opacity .25s}
+.vinyl-player.playing .vinyl-progress-ring{opacity:1}
+.vinyl-progress-ring circle{fill:none;stroke-width:3.5;stroke-linecap:round}
+.vinyl-progress-ring .track{stroke:rgba(255,255,255,.25)}
+.vinyl-progress-ring .bar{stroke:#F2ECD9;transform-origin:center;transform:rotate(-90deg);transition:stroke-dashoffset .25s linear}
+/* Spotify embed is the real audio source but hidden visually — it sits
+   behind the cover art (z:0 < slider z:1 < cover z:2) so the user only
+   sees the vinyl. opacity:0 keeps it invisible while still letting the
+   browser treat it as a normal, rendered iframe (required for playback). */
+.vinyl-spotify-embed{position:absolute;top:50%;left:34%;width:70%;height:30%;transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:0;overflow:hidden;border-radius:10px}
+.vinyl-spotify-embed iframe{width:100%;height:100%;border:0;display:block}
+
 .tama-float>*{transform-origin:center center}
 
 /* ===== HERO FLOATING LABELS ===== */
 .hero-labels{position:absolute;inset:0;pointer-events:none;z-index:40}
 .hero-label{position:absolute;pointer-events:auto;transition:transform .4s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(3px 3px 0 rgba(0,0,0,.15))}
 .hero-label:hover{transform:scale(1.08) rotate(-2deg)}
-.hero-label img,.hero-label svg{display:block;width:100%}
+.hero-label img{display:block;width:100%}
 .hero-label--creative{width:59%;top:10%;left:-24%;z-index:2;animation:labelFloat1 3s ease-in-out infinite}
 .hero-label--art-director{width:58%;top:18%;left:-30%;z-index:1;animation:labelFloat2 3.5s ease-in-out infinite}
 .hero-label--design{width:48%;top:46%;right:-18%;z-index:1;animation:labelFloat3 2.8s ease-in-out infinite}
@@ -127,7 +173,7 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
   .hero-label--photography{width:44%;top:60%;right:-12%}
 }
 
-.title-name{font-family:var(--f-title);font-size:8vw;font-weight:900;line-height:.88;letter-spacing:-.02em;color:var(--tang);position:relative;z-index:3;padding:0;margin:0;white-space:nowrap}
+.title-name{font-family:'Black Han Sans',var(--f-title);font-size:8vw;font-weight:400;line-height:.88;letter-spacing:-.01em;color:var(--tang);position:relative;z-index:3;padding:0;margin:0;white-space:nowrap}
 
 /* ===== PIXEL SPEECH BUBBLES ===== */
 .pixel-bubbles-wrap{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none}
@@ -145,42 +191,43 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 @keyframes bubbleFloat{0%,100%{transform:translateY(0) rotate(var(--rot,0deg))}50%{transform:translateY(-7px) rotate(var(--rot,0deg))}}
 
 /* ===== TAMAGOTCHI SHELL ===== */
-.tama-shell{border-radius:50% 50% 40% 40%/60% 60% 40% 40%;background:var(--tang);border:7px solid var(--black);padding:2.1rem 2.6rem;width:456px;max-width:90vw;aspect-ratio:.8;position:relative;box-shadow:19px 19px 0 var(--black);display:flex;flex-direction:column;align-items:center;will-change:transform;contain:layout style;animation:tamaFloat 3.4s ease-in-out infinite}
-@keyframes tamaFloat{0%,100%{transform:translateY(0);box-shadow:19px 19px 0 var(--black)}50%{transform:translateY(-10px);box-shadow:19px 26px 0 var(--black)}}
-.tama-shell:hover{transform:translateY(-10px) rotate(-1.5deg);box-shadow:22px 28px 0 var(--black)}
-.tama-frame{width:100%;background:var(--citric);border:4px solid var(--black);border-radius:12px;padding:10px;margin-top:1.2rem;box-shadow:inset 0 -8px 0 rgba(0,0,0,.1)}
-.tama-screen{width:100%;aspect-ratio:1;border:4px solid var(--black);border-radius:4px;position:relative;overflow:hidden;box-shadow:inset 4px 4px 0 rgba(0,0,0,.1);display:flex;flex-direction:column}
+.tama-shell{background:url(tama-shell.png) center/contain no-repeat;border:none;border-radius:0;box-shadow:none;padding:0;width:399px;max-width:79vw;aspect-ratio:0.851;position:relative;display:flex;flex-direction:column;align-items:center;will-change:transform;contain:layout style;animation:tamaFloat 3.4s ease-in-out infinite;filter:drop-shadow(10px 10px 0 rgba(0,0,0,.35))}
+@keyframes tamaFloat{0%,100%{transform:translateY(0);filter:drop-shadow(14px 14px 0 rgba(0,0,0,.35))}50%{transform:translateY(-10px);filter:drop-shadow(14px 20px 0 rgba(0,0,0,.3))}}
+.tama-shell:hover{transform:translateY(-10px) rotate(-1.5deg);filter:drop-shadow(16px 22px 0 rgba(0,0,0,.3))}
+.tama-frame{position:absolute;top:32.6%;left:30.8%;width:38.5%;background:transparent;border:none;border-radius:0;padding:0;margin:0;box-shadow:none}
+.tama-screen{width:100%;aspect-ratio:0.965;border:none;border-radius:4px;position:relative;overflow:hidden;box-shadow:none;display:flex;flex-direction:column}
 .tama-hud{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-family:var(--f-pixel);font-size:.55rem;position:relative;z-index:2}
 .hud-dots{display:flex;gap:3px}
 .hud-dot{width:4px;height:4px;background:var(--black)}
-.tama-avatar{flex:1;display:flex;justify-content:center;align-items:center;z-index:2;padding-bottom:0;overflow:hidden}
-.tama-avatar svg{display:block}
+.tama-avatar{flex:1;display:flex;justify-content:center;align-items:center;z-index:2;padding-bottom:0;overflow:visible}
+.tama-avatar svg{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
 .tama-status{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--f-pixel);font-size:.4rem;color:var(--black);z-index:3;transition:opacity .3s}
 
 /* Tama buttons */
-.tama-btns{display:flex;justify-content:center;gap:1.5rem;margin-top:1.8rem}
+.tama-btns{position:absolute;bottom:13%;left:0;right:0;display:flex;justify-content:center;gap:2rem;margin:0}
 .tama-btn{position:relative}
-.tama-btn-dot{width:34px;height:34px;border-radius:50%;background:var(--citric);border:4px solid var(--black);box-shadow:4px 4px 0 var(--black);cursor:pointer;transition:all .15s}
-.tama-btn-dot:active{box-shadow:none;transform:translate(2px,2px)}
-.tama-btn-dot:hover{background:#fff;transform:scale(1.1)}
+.tama-btn-dot{width:24px;height:24px;border-radius:50%;background:transparent;border:none;box-shadow:none;cursor:pointer;transition:all .15s}
+.tama-btn-dot:active{transform:translate(1px,1px)}
+.tama-btn-dot:hover{background:rgba(255,255,255,.15);transform:scale(1.1)}
 .tama-btn-tip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%) translateY(4px);background:var(--white);border:2px solid var(--black);font-family:var(--f-pixel);font-size:.5rem;padding:4px 8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
 .tama-btn:hover .tama-btn-tip{opacity:1;transform:translateX(-50%) translateY(0)}
-.tama-btn:nth-child(2){margin-top:10px}
+.tama-btn:nth-child(2){margin-top:4px}
 
 /* ===== FLOATING TAMAGOTCHI ===== */
 .floater{position:fixed;bottom:20px;right:20px;z-index:9999;width:110px;opacity:0;pointer-events:none;transform:translateY(40px) scale(.85);transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1)}
 .floater.show{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-.mini-shell{border-radius:50% 50% 40% 40%/60% 60% 40% 40%;background:var(--tang);border:4px solid var(--black);padding:6px 8px 4px;box-shadow:5px 5px 0 var(--black);display:flex;flex-direction:column;align-items:center;animation:bob 2.5s ease-in-out infinite;cursor:pointer;transition:transform .3s,box-shadow .3s;will-change:transform}
-.mini-shell:hover{transform:scale(1.08) translateY(-2px);box-shadow:7px 8px 0 var(--black)}
-.mini-frame{width:100%;background:var(--citric);border:3px solid var(--black);border-radius:6px;padding:3px}
-.mini-screen{width:100%;aspect-ratio:1;border:2px solid var(--black);border-radius:2px;position:relative;overflow:hidden;display:flex;flex-direction:column;animation:flicker 3s ease-in-out infinite;will-change:opacity}
+.mini-shell{background:url(tama-shell.png) center/contain no-repeat;border:none;border-radius:0;box-shadow:none;padding:0;aspect-ratio:0.851;display:flex;flex-direction:column;align-items:center;position:relative;animation:bob 2.5s ease-in-out infinite;cursor:pointer;transition:transform .3s,filter .3s;will-change:transform;filter:drop-shadow(4px 4px 0 rgba(0,0,0,.3))}
+.mini-shell:hover{transform:scale(1.08) translateY(-2px);filter:drop-shadow(5px 6px 0 rgba(0,0,0,.3))}
+.mini-frame{position:absolute;top:32.6%;left:30.8%;width:38.5%;background:transparent;border:none;border-radius:0;padding:0}
+.mini-screen{width:100%;aspect-ratio:0.965;border:none;border-radius:2px;position:relative;overflow:hidden;display:flex;flex-direction:column;animation:flicker 3s ease-in-out infinite;will-change:opacity}
 .mini-hud{display:flex;justify-content:space-between;padding:2px 3px;font-family:var(--f-pixel);font-size:4px}
-.mini-avatar{flex:1;display:flex;justify-content:center;align-items:center;padding-bottom:2px}
+.mini-avatar{flex:1;display:flex;justify-content:center;align-items:center;padding-bottom:2px;overflow:visible}
+.mini-avatar svg{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
 .mini-status{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-family:var(--f-pixel);font-size:4px;color:var(--black);transition:opacity .3s}
-.mini-btns{display:flex;justify-content:center;gap:5px;margin-top:4px;padding-bottom:2px}
-.mini-btn-dot{width:12px;height:12px;border-radius:50%;background:var(--citric);border:2px solid var(--black);box-shadow:2px 2px 0 var(--black);cursor:pointer;transition:all .1s}
-.mini-btn-dot:active{box-shadow:none;transform:translate(1px,1px)}
-.mini-btn-dot:nth-child(2){margin-top:3px}
+.mini-btns{position:absolute;bottom:13%;left:0;right:0;display:flex;justify-content:center;gap:5px;margin:0;padding:0}
+.mini-btn-dot{width:12px;height:12px;border-radius:50%;background:transparent;border:none;box-shadow:none;cursor:pointer;transition:all .1s}
+.mini-btn-dot:active{transform:translate(1px,1px)}
+.mini-btn-dot:nth-child(2){margin-top:2px}
 
 /* ===== MARQUEE ===== */
 .marquee-wrap{overflow:hidden;background:var(--white);padding:2rem 0 .5rem;position:relative;z-index:1;margin-top:0;border-radius:0}
@@ -400,8 +447,9 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 .hero-enter{opacity:0;transform:translateY(16px)}
 .hero-enter.go{opacity:1;transform:none;transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
 .hero-enter.d1{transition-delay:.1s}
-.hero-enter.d2{transition-delay:.35s}
-.hero-enter.d3{transition-delay:.6s}
+.hero-enter.d2{transition-delay:.45s}
+.hero-enter.d3{transition-delay:.85s}
+.hero-enter.d4{transition-delay:1.1s}
 
 /* ===== SECTION REVEALS ===== */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
@@ -736,7 +784,7 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes flicker{0%,100%{opacity:1}50%{opacity:.95}75%{opacity:.98}}
 @keyframes pxFlick{0%{opacity:0;background-size:40px 40px}25%{opacity:.7;background-size:20px 20px}50%{opacity:.12;background-size:10px 10px}75%{opacity:.8;background-size:5px 5px}100%{opacity:0;background-size:2px 2px}}
-@media(max-width:768px){.title-name{font-size:clamp(2.25rem,13vw,5.5rem)!important;letter-spacing:-.03em!important;width:auto!important;max-width:100%!important;padding:0 .5rem!important;box-sizing:border-box!important;white-space:nowrap!important}.awards-title,.exp-left-title,.contact-title{font-size:clamp(2rem,9vw,3.5rem);white-space:nowrap}}</style>
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -2609,6 +2657,279 @@ function NavBar({active,onNav,sectionColor}) {
   );
 }
 
+// ===== HERO OBJECTS (draggable collage) =====
+// Each object has: src, top/left as % of hero, width (in vw), rotation deg, zIndex.
+// Beads spell ART DIRECTOR along a curve to the left of the Tamagotchi.
+const HERO_OBJECTS = [
+  {id:'polaroid-cam',  src:'objects/Polaroid180.png',   top:'78%', left:'72%', w:'16vw',  rot:-6,  z:8,  label:'Polaroid'},
+  {id:'polaroid-me',   src:'objects/Polaroid me.png',   top:'85%', left:'29%', w:'13.65vw',rot:7,  z:6,  label:'Polaroid photo'},
+  {id:'mtg',           src:'objects/mtg.png',           top:'83%', left:'10%', w:'10.5vw',rot:-12, z:7,  label:'Magic card'},
+  {id:'snowlift',      src:'objects/snowlift.png',      top:'91%', left:'23%', w:'6.5vw', rot:-4,  z:9,  label:'Ski ticket'},
+  {id:'stroopwafel',   src:'objects/stroopwafel.png',   top:'44%', left:'77%', w:'17.84vw',rot:14, z:8,  label:'Stroopwafel'},
+  {id:'ticket',        src:'objects/flight tickect.png',top:'63%', left:'75%', w:'28.39vw',rot:6,  z:7,  label:'Boarding pass'},
+  {id:'surfskate',     src:'objects/surfskate.png',     top:'66%', left:'93%', w:'10.5vw',rot:14,  z:8,  label:'Skateboard'},
+];
+
+// ART DIRECTOR beads — two-row layout to the left of the Tamagotchi, matching mockup
+const HERO_BEADS = [
+  // ART — upper row, slight rising arc
+  {id:'b-A',  src:'objects/A.png',  top:'53.5%', left:'9%',  rot:-10},
+  {id:'b-R',  src:'objects/R.png',  top:'55%',   left:'12%', rot:-5 },
+  {id:'b-T',  src:'objects/T.png',  top:'57%',   left:'16%', rot:0  },
+  // DIRECTOR — lower row, gently rising
+  {id:'b-D',  src:'objects/D.png',  top:'65%',   left:'7%',  rot:-4 },
+  {id:'b-I',  src:'objects/I.png',  top:'66%',   left:'10%', rot:-2 },
+  {id:'b-R2', src:'objects/R2.png', top:'67%',   left:'14%', rot:0  },
+  {id:'b-E',  src:'objects/E.png',  top:'67.5%', left:'17%', rot:2  },
+  {id:'b-C',  src:'objects/C.png',  top:'68%',   left:'20%', rot:4  },
+  {id:'b-T2', src:'objects/T2.png', top:'69%',   left:'23%', rot:6  },
+  {id:'b-O',  src:'objects/O.png',  top:'69%',   left:'27%', rot:8  },
+  {id:'b-R3', src:'objects/R3.png', top:'70%',   left:'30%', rot:10 },
+];
+
+function DraggableHeroObject({src, top, left, w, rot, z, label, isBead}) {
+  const [offset, setOffset] = useState({x:0,y:0});
+  const [drag, setDrag] = useState(false);
+  const start = useRef({x:0,y:0,ox:0,oy:0});
+  const elRef = useRef(null);
+
+  const onDown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try { elRef.current.setPointerCapture(e.pointerId); } catch(_){}
+    start.current = {x:e.clientX, y:e.clientY, ox:offset.x, oy:offset.y};
+    setDrag(true);
+  };
+  const onMove = (e) => {
+    if (!drag) return;
+    const dx = e.clientX - start.current.x;
+    const dy = e.clientY - start.current.y;
+    setOffset({x:start.current.ox+dx, y:start.current.oy+dy});
+  };
+  const onUp = (e) => {
+    if (!drag) return;
+    try { elRef.current.releasePointerCapture(e.pointerId); } catch(_){}
+    setDrag(false);
+    // Drag-and-stay: keep offset where the user dropped it.
+  };
+
+  const minW = isBead ? '28px' : '44px';
+  const style = {
+    top, left,
+    width:w,
+    minWidth:minW,
+    transform:`translate(-50%,-50%) translate(${offset.x}px, ${offset.y}px) rotate(${rot}deg)${drag?' scale(1.06)':''}`,
+    zIndex: drag ? 50 : z,
+  };
+
+  return (
+    <div
+      ref={elRef}
+      className={`hero-obj${isBead?' bead':''}${drag?' dragging':''}`}
+      style={style}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      aria-label={label}
+      role="img"
+    >
+      <img src={src} alt={label||''} draggable={false}/>
+    </div>
+  );
+}
+
+function HeroObjects({className=''}){
+  return (
+    <div className={`hero-objects ${className}`} aria-hidden="false">
+      {HERO_OBJECTS.map(o => (
+        <DraggableHeroObject key={o.id} {...o}/>
+      ))}
+      {HERO_BEADS.map(b => (
+        <DraggableHeroObject key={b.id} src={b.src} top={b.top} left={b.left} w="2.91vw" rot={b.rot} z={10} label={b.id.replace('b-','')} isBead/>
+      ))}
+    </div>
+  );
+}
+
+// ===== VINYL PLAYER =====
+// Draggable Framer-marketplace-style record that plays a Spotify track.
+// Uses the official Spotify IFrame API so the center play button controls playback.
+const SPOTIFY_TRACK_ID  = '3BxKwMWBl1eyPeWQ0Dpn5J';
+const SPOTIFY_TRACK_URI = 'spotify:track:' + SPOTIFY_TRACK_ID;
+const SPOTIFY_TRACK_URL = 'https://open.spotify.com/track/' + SPOTIFY_TRACK_ID;
+function useSpotifyIframeApi(){
+  const [api, setApi] = useState(null);
+  useEffect(() => {
+    if (window.__spotifyApi) { setApi(window.__spotifyApi); return; }
+    if (!window.__spotifyApiPromise){
+      window.__spotifyApiPromise = new Promise(res => {
+        // Chain in case something else is already listening
+        const prev = window.onSpotifyIframeApiReady;
+        window.onSpotifyIframeApiReady = (a) => {
+          window.__spotifyApi = a;
+          if (typeof prev === 'function') { try { prev(a); } catch(_){} }
+          res(a);
+        };
+      });
+    }
+    let cancelled = false;
+    window.__spotifyApiPromise.then(a => { if (!cancelled) setApi(a); });
+    return () => { cancelled = true; };
+  }, []);
+  return api;
+}
+
+// Preview length for the Spotify track (20s as requested)
+const VINYL_PREVIEW_MS = 20000;
+
+function VinylPlayer({top='24%', left='80%', w='20vw', rot=3, z=14}){
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0); // 0..1 across 30s
+  const slotRef = useRef(null);   // div that Spotify replaces with its iframe
+  const controllerRef = useRef(null);
+  const vinylImgRef = useRef(null);
+  const angleRef = useRef(0);
+  const api = useSpotifyIframeApi();
+
+  // When the IFrame API is ready, let Spotify build its iframe inside our
+  // hidden container. We then control it via the returned controller.
+  useEffect(() => {
+    if (!api || !slotRef.current || controllerRef.current) return;
+    try {
+      api.createController(slotRef.current, {
+        uri: SPOTIFY_TRACK_URI, width:'100%', height:'100%'
+      }, (ctrl) => {
+        controllerRef.current = ctrl;
+        ctrl.addListener('ready', () => { console.log('[vinyl] Spotify controller ready'); });
+        ctrl.addListener('playback_update', (e) => {
+          if (!e || !e.data) return;
+          const isPaused = !!e.data.isPaused;
+          const pos = e.data.position || 0;
+          if (!isPaused) {
+            if (pos >= VINYL_PREVIEW_MS) {
+              // Reached 30s — stop immediately, reset, slide vinyl back.
+              try { ctrl.pause(); } catch(_){}
+              try { ctrl.seek(0); } catch(_){}
+              setPlaying(false);
+              setProgress(0);
+            } else {
+              setPlaying(true);
+              setProgress(Math.min(1, pos / VINYL_PREVIEW_MS));
+            }
+          } else {
+            setPlaying(false);
+          }
+        });
+      });
+    } catch (err) {
+      console.warn('[vinyl] createController failed', err);
+    }
+  }, [api]);
+
+  // Smooth vinyl spin via rAF — avoids the snap-back a CSS animation causes on stop
+  useEffect(() => {
+    if (!playing) return;
+    let raf;
+    const startDelay = 350; // small pause so slide-out begins first
+    const t = setTimeout(() => {
+      let last = performance.now();
+      const tick = (now) => {
+        const dt = now - last; last = now;
+        angleRef.current = (angleRef.current + dt * 0.12) % 360; // ~3s / revolution
+        if (vinylImgRef.current) {
+          vinylImgRef.current.style.transform = `rotate(${angleRef.current}deg)`;
+        }
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    }, startDelay);
+    return () => { clearTimeout(t); if (raf) cancelAnimationFrame(raf); };
+  }, [playing]);
+
+  // Clear the progress ring after the vinyl has finished sliding back in
+  useEffect(() => {
+    if (playing) return;
+    const t = setTimeout(() => setProgress(0), 1000);
+    return () => clearTimeout(t);
+  }, [playing]);
+
+  // Wall-clock safety timer: guarantees the vinyl stops and slides back after
+  // 30 seconds even if Spotify's playback_update events are delayed or missed.
+  useEffect(() => {
+    if (!playing) return;
+    const t = setTimeout(() => {
+      const ctrl = controllerRef.current;
+      if (ctrl) {
+        try { ctrl.pause(); } catch(_){}
+        try { ctrl.seek(0); } catch(_){}
+      }
+      setPlaying(false);
+      setProgress(0);
+    }, VINYL_PREVIEW_MS);
+    return () => clearTimeout(t);
+  }, [playing]);
+
+  const toggle = (e) => {
+    e.stopPropagation(); e.preventDefault();
+    const ctrl = controllerRef.current;
+    if (ctrl) {
+      try {
+        if (playing) ctrl.pause();
+        else { ctrl.seek(0); ctrl.play(); }
+        return;
+      } catch (err) { console.warn('[vinyl] controller action failed', err); }
+    }
+    // Fallback: click the iframe's own play button is always an option —
+    // here we just toggle the visual state so user knows to use the embed.
+    setPlaying(p => !p);
+  };
+
+  const style = {
+    top, left, width: w,
+    transform: `translate(-50%,-50%) rotate(${rot}deg)`,
+    zIndex: z,
+  };
+
+  // Progress ring geometry (viewBox 0 0 100 100)
+  const R = 46, C = 2 * Math.PI * R;
+  const dash = C * (1 - progress);
+
+  return (
+    <div
+      className={`vinyl-player${playing?' playing':''}`}
+      style={style}
+      aria-label="Vinyl player"
+    >
+      <div className="vinyl-stage">
+        <div className="vinyl-slider">
+          <img ref={vinylImgRef} src="objects/Vinyl.png" alt="" draggable={false}/>
+        </div>
+        <img className="vinyl-cover-img" src="objects/Vinyl Record cover.png" alt="Album cover" draggable={false}/>
+        <svg className="vinyl-progress-ring" viewBox="0 0 100 100" aria-hidden="true">
+          <circle className="track" cx="50" cy="50" r={R}/>
+          <circle className="bar" cx="50" cy="50" r={R} strokeDasharray={C} strokeDashoffset={dash}/>
+        </svg>
+        <button
+          type="button"
+          className="vinyl-play-btn"
+          onClick={toggle}
+          aria-label={playing?'Pause':'Play 30 second preview'}
+        >
+          {playing ? (
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2" width="3" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3" height="12" fill="currentColor"/></svg>
+          ) : (
+            <svg viewBox="0 0 16 16" aria-hidden="true"><polygon points="3.5,2 13.5,8 3.5,14" fill="currentColor"/></svg>
+          )}
+        </button>
+      </div>
+      <div className="vinyl-spotify-embed" aria-hidden="true">
+        <div ref={slotRef}></div>
+      </div>
+    </div>
+  );
+}
+
 // ===== HERO TAMAGOTCHI =====
 // Reaction class map per nav target
 const REACTION_CLASSES = {work:'tama-react-jump',about:'tama-react-wave',contact:'tama-react-wink',awards:'tama-reacting',experience:'tama-reacting'};
@@ -2635,21 +2956,14 @@ function HeroTama({onBtn, mood, blinking, reacting, reactionTarget}) {
 
   return (
     <div style={{position:'relative'}}>
-      <div className="hero-labels">
-        <div className="hero-label hero-label--creative"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#fe4633" stroke="#000" strokeMiterlimit="10" x="81.11" y="12.82" width="206.96" height="86.57" rx="12" ry="12"/><text fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(105.02 70.02)"><tspan x="0" y="0">Creative</tspan></text></svg></div>
-        <div className="hero-label hero-label--art-director"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#4100f6" stroke="#000" strokeMiterlimit="10" x="13.34" y="12.82" width="342.5" height="86.57" rx="43.28" ry="43.28"/><text fill="#cef664" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(56.33 71.02)"><tspan x="0" y="0">Art Director</tspan></text></svg></div>
-        <div className="hero-label hero-label--design"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#caf464" stroke="#000" strokeMiterlimit="10" x="100.37" y="12.82" width="168.44" height="86.57" rx="12" ry="12"/><text fill="#4100f6" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(125.54 70.02)"><tspan x="0" y="0">Design</tspan></text></svg></div>
-        <div className="hero-label hero-label--ideas"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#9aefe0" stroke="#000" strokeMiterlimit="10" x="20.79" y="12.82" width="327.6" height="86.57" rx="43.28" ry="43.28"/><text fill="#fe4633" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(61.88 68.62)"><tspan x="0" y="0">Idea creation</tspan></text></svg></div>
-        <div className="hero-label hero-label--photography"><svg viewBox="0 0 369.18 112.21" xmlns="http://www.w3.org/2000/svg"><rect fill="#f137a6" stroke="#000" strokeMiterlimit="10" x="32.99" y="12.82" width="303.21" height="86.57" rx="12" ry="12"/><text fill="#9bf0e2" fontFamily="'DotGothic16', monospace" fontSize="41.88" transform="translate(69.42 70.02)"><tspan x="0" y="0">Photography</tspan></text></svg></div>
-      </div>
+      <div className="hero-labels"></div>
       <div className={`tama-shell ${animClass}`}>
         <div className="tama-frame">
-          <div className="tama-screen bg-grid-aqua">
+          <div className="tama-screen">
             <div className="tama-hud">
               <div className="hud-dots"><div className="hud-dot"/><div className="hud-dot"/><div className="hud-dot"/></div>
               <div>LV 99</div>
             </div>
-            <div style={{textAlign:'center',fontFamily:'var(--f-pixel)',fontSize:'.4rem',color:'var(--black)',position:'relative',zIndex:3,paddingTop:'2px'}}>CREATIVE / ART DIRECTOR</div>
             <div className="tama-avatar">
               <MemoEllaAvatar size={220} mood={mouthStyle} blinking={blinking && !hoveredBtn} winking={showWink} shy={hoveredBtn==='about'}/>
             </div>
@@ -2664,7 +2978,7 @@ function HeroTama({onBtn, mood, blinking, reacting, reactionTarget}) {
             </div>
           ))}
         </div>
-        <div style={{textAlign:'center',fontFamily:'var(--f-pixel)',fontSize:'.455rem',color:'var(--citric)',letterSpacing:'.05em',marginTop:'.8rem',opacity:.8}}>PRESS ANY BUTTON</div>
+        <div style={{textAlign:'center',fontFamily:'var(--f-pixel)',fontSize:'.455rem',color:'rgba(80,80,100,.6)',letterSpacing:'.05em',position:'absolute',bottom:'7%',left:0,right:0}}>PRESS ANY BUTTON</div>
       </div>
     </div>
   );
@@ -2688,7 +3002,7 @@ function FloatingTama({show,onNav,mood,reacting,reactionTarget}) {
     <div className={`floater ${show?'show':''}`}>
       <div className={`mini-shell ${reacting?(REACTION_CLASSES[reactionTarget]||'tama-reacting'):''}`}>
         <div className="mini-frame">
-          <div className="mini-screen bg-grid-aqua">
+          <div className="mini-screen">
             <div className="mini-hud">
               <div style={{display:'flex',gap:2}}>
                 <div style={{width:2,height:2,background:'var(--black)'}}/>
@@ -3426,19 +3740,25 @@ function App() {
     {/* ===== HERO ===== */}
     <div className="hero-outer">
       <section className="hero" ref={heroRef} id="hero">
-        <div className={`title-name-wrap hero-enter d1 ${go}`}>
+        <HeroObjects className={`hero-enter d3 ${go}`}/>
+        <div className={`title-name-wrap hero-enter d2 ${go}`}>
           <div className="title-name" ref={nameRef}>ELLA WONG</div>
         </div>
-        <div className={`tama-float hero-enter d2 ${go}`} ref={paraRef}>
-          <HeroTama onBtn={scrollTo} mood={activeSection} blinking={heroBlink} reacting={reacting} reactionTarget={reactionTarget}/>
+        <div className="tama-pos">
+          <div className={`tama-float hero-enter d1 ${go}`} ref={paraRef}>
+            <HeroTama onBtn={scrollTo} mood={activeSection} blinking={heroBlink} reacting={reacting} reactionTarget={reactionTarget}/>
+          </div>
+        </div>
+        <div className={`hero-enter d3 ${go}`} style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:14}}>
+          <VinylPlayer top="45%" left="28%" w="22vw" rot={-4}/>
         </div>
       </section>
       {/* Divider: Hero → Marquee (inside hero-outer so grid bg is seamless) */}
-      <PixelDivider topColor="#ffcfc8" bottomColor="#ffffff" accentColor="#FF4632" pxSize={4} seed={7} className="hero-divider" blendTop={true}/>
+      <PixelDivider topColor="#191414" bottomColor="#ffffff" accentColor="#FF4632" pxSize={4} seed={7} className="hero-divider" blendTop={true}/>
     </div>
 
     {/* ===== MARQUEE ===== */}
-    <div className={`hero-enter d3 ${go}`}><Marquee/></div>
+    <div className={`hero-enter d4 ${go}`}><Marquee/></div>
 
     {/* ===== WORK ===== */}
     <PxWipe>

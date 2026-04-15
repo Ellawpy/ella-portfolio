@@ -116,6 +116,45 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 .hero-obj:hover:not(.dragging){filter:drop-shadow(8px 12px 16px rgba(0,0,0,.6)) brightness(1.05)}
 @media(max-width:900px){.hero-obj{filter:drop-shadow(3px 4px 8px rgba(0,0,0,.5))}}
 
+/* ===== MOBILE HERO LAYOUT OVERRIDES ===== */
+/* On narrow viewports, the tamagotchi sits centered and covers most of the hero.
+   Reposition the vinyl, stroopwafel, and bead letters so nothing is hidden
+   behind the tamagotchi and the ART DIRECTOR beads don't overlap. */
+@media(max-width:768px){
+  /* Vinyl: move to top-left corner, above tamagotchi */
+  .vinyl-player{top:14% !important;left:20% !important;width:34vw !important}
+  /* Stroopwafel: top-right corner, clear of tamagotchi */
+  .hero-obj[data-id="stroopwafel"]{top:10% !important;left:82% !important;width:26vw !important}
+  /* Boarding pass: tuck into upper-right behind stroopwafel zone */
+  .hero-obj[data-id="ticket"]{top:24% !important;left:80% !important;width:40vw !important}
+  /* Polaroid 180 camera: bottom-right, below tama */
+  .hero-obj[data-id="polaroid-cam"]{top:74% !important;left:78% !important;width:28vw !important}
+  /* Polaroid photo: bottom-left, above ART beads */
+  .hero-obj[data-id="polaroid-me"]{top:74% !important;left:26% !important;width:22vw !important}
+  /* Magic card: lower-left */
+  .hero-obj[data-id="mtg"]{top:70% !important;left:12% !important;width:20vw !important}
+  /* Snow ticket: nestle near magic card */
+  .hero-obj[data-id="snowlift"]{top:62% !important;left:8% !important;width:14vw !important}
+  /* Skateboard: right edge mid-height */
+  .hero-obj[data-id="surfskate"]{top:60% !important;left:92% !important;width:20vw !important}
+
+  /* Beads: 30% smaller than before + stack ART (row 1) above DIRECTOR (row 2) */
+  .hero-obj.bead{width:5.6vw !important;min-width:17px}
+  /* ART row — centered, tighter spacing for smaller beads */
+  .hero-obj.bead[data-id="b-A"]  {top:89% !important; left:43% !important}
+  .hero-obj.bead[data-id="b-R"]  {top:90% !important; left:50% !important}
+  .hero-obj.bead[data-id="b-T"]  {top:89% !important; left:57% !important}
+  /* DIRECTOR row — spread across the width with tightened spacing */
+  .hero-obj.bead[data-id="b-D"]  {top:95% !important; left:12% !important}
+  .hero-obj.bead[data-id="b-I"]  {top:96% !important; left:21% !important}
+  .hero-obj.bead[data-id="b-R2"] {top:95% !important; left:30% !important}
+  .hero-obj.bead[data-id="b-E"]  {top:96% !important; left:39% !important}
+  .hero-obj.bead[data-id="b-C"]  {top:95% !important; left:48% !important}
+  .hero-obj.bead[data-id="b-T2"] {top:96% !important; left:57% !important}
+  .hero-obj.bead[data-id="b-O"]  {top:95% !important; left:66% !important}
+  .hero-obj.bead[data-id="b-R3"] {top:96% !important; left:75% !important}
+}
+
 /* ===== VINYL PLAYER ===== */
 .vinyl-player{position:absolute;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;touch-action:none;cursor:grab;will-change:transform;filter:drop-shadow(8px 10px 14px rgba(0,0,0,.45));z-index:14;transform:translateZ(0)}
 .vinyl-player.dragging{cursor:grabbing;z-index:60;filter:none}
@@ -173,7 +212,12 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
   .hero-label--photography{width:44%;top:60%;right:-12%}
 }
 
-.title-name{font-family:'Black Han Sans',var(--f-title);font-size:8vw;font-weight:400;line-height:.88;letter-spacing:-.01em;color:var(--tang);position:relative;z-index:3;padding:0;margin:0;white-space:nowrap}
+.title-name{font-family:'Black Han Sans',var(--f-title);font-size:8vw;font-weight:400;line-height:.88;letter-spacing:-.01em;color:var(--tang);position:relative;z-index:3;padding:0;margin:0;white-space:nowrap;display:flex;justify-content:center;align-items:flex-start;gap:.25em;width:100%}
+.title-word{display:inline-block;line-height:.88}
+@media(max-width:768px){
+  .title-name{flex-direction:column;align-items:center;gap:0;width:100%}
+  .title-word{display:block}
+}
 
 /* ===== PIXEL SPEECH BUBBLES ===== */
 .pixel-bubbles-wrap{position:absolute;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none}
@@ -192,6 +236,8 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 
 /* ===== TAMAGOTCHI SHELL ===== */
 .tama-shell{background:url(tama-shell.png) center/contain no-repeat;border:none;border-radius:0;box-shadow:none;padding:0;width:399px;max-width:79vw;aspect-ratio:0.851;position:relative;display:flex;flex-direction:column;align-items:center;will-change:transform;contain:layout style;animation:tamaFloat 3.4s ease-in-out infinite;filter:drop-shadow(10px 10px 0 rgba(0,0,0,.35))}
+@media(max-width:768px){.tama-shell{width:60vw;max-width:60vw}}
+@media(max-width:480px){.tama-shell{width:55vw;max-width:55vw}}
 @keyframes tamaFloat{0%,100%{transform:translateY(0);filter:drop-shadow(14px 14px 0 rgba(0,0,0,.35))}50%{transform:translateY(-10px);filter:drop-shadow(14px 20px 0 rgba(0,0,0,.3))}}
 .tama-shell:hover{transform:translateY(-10px) rotate(-1.5deg);filter:drop-shadow(16px 22px 0 rgba(0,0,0,.3))}
 .tama-frame{position:absolute;top:32.6%;left:30.8%;width:38.5%;background:transparent;border:none;border-radius:0;padding:0;margin:0;box-shadow:none}
@@ -2687,7 +2733,7 @@ const HERO_BEADS = [
   {id:'b-R3', src:'objects/R3.png', top:'70%',   left:'30%', rot:10 },
 ];
 
-function DraggableHeroObject({src, top, left, w, rot, z, label, isBead}) {
+function DraggableHeroObject({id, src, top, left, w, rot, z, label, isBead}) {
   const [offset, setOffset] = useState({x:0,y:0});
   const [drag, setDrag] = useState(false);
   const start = useRef({x:0,y:0,ox:0,oy:0});
@@ -2725,6 +2771,7 @@ function DraggableHeroObject({src, top, left, w, rot, z, label, isBead}) {
   return (
     <div
       ref={elRef}
+      data-id={id}
       className={`hero-obj${isBead?' bead':''}${drag?' dragging':''}`}
       style={style}
       onPointerDown={onDown}
@@ -2746,7 +2793,7 @@ function HeroObjects({className=''}){
         <DraggableHeroObject key={o.id} {...o}/>
       ))}
       {HERO_BEADS.map(b => (
-        <DraggableHeroObject key={b.id} src={b.src} top={b.top} left={b.left} w="2.91vw" rot={b.rot} z={10} label={b.id.replace('b-','')} isBead/>
+        <DraggableHeroObject key={b.id} id={b.id} src={b.src} top={b.top} left={b.left} w="2.91vw" rot={b.rot} z={10} label={b.id.replace('b-','')} isBead/>
       ))}
     </div>
   );
@@ -3637,16 +3684,24 @@ function App() {
   const fitName = useCallback(()=>{
     const el = nameRef.current;
     if(!el) return;
+    const isMobile = window.innerWidth <= 768;
     // Temporarily set reference size to measure natural text width
     el.style.fontSize = '100px';
     el.style.width = 'auto';
-    el.style.display = 'inline-block';
+    el.style.display = 'inline-flex';
     void el.offsetWidth;
-    const refW = el.getBoundingClientRect().width;
+    let refW;
+    if(isMobile){
+      // On mobile the two words stack; fit by the widest word so WONG fills viewport.
+      const words = el.querySelectorAll('.title-word');
+      refW = words.length ? Math.max.apply(null, Array.from(words).map(w => w.getBoundingClientRect().width)) : el.getBoundingClientRect().width;
+    } else {
+      refW = el.getBoundingClientRect().width;
+    }
     const viewW = window.innerWidth;
     if(refW > 0 && viewW > 0){
       el.style.fontSize = ((100 * viewW) / refW) + 'px';
-      el.style.display = 'block';
+      el.style.display = isMobile ? 'flex' : 'flex';
       el.style.width = '100%';
     }
   },[]);
@@ -3742,7 +3797,7 @@ function App() {
       <section className="hero" ref={heroRef} id="hero">
         <HeroObjects className={`hero-enter d3 ${go}`}/>
         <div className={`title-name-wrap hero-enter d2 ${go}`}>
-          <div className="title-name" ref={nameRef}>ELLA WONG</div>
+          <div className="title-name" ref={nameRef}><span className="title-word">ELLA</span><span className="title-word">WONG</span></div>
         </div>
         <div className="tama-pos">
           <div className={`tama-float hero-enter d1 ${go}`} ref={paraRef}>

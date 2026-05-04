@@ -102,7 +102,7 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 .hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60%;height:60%;background-image:linear-gradient(45deg,rgba(255,255,255,.12)25%,transparent 25%,transparent 75%,rgba(255,255,255,.12)75%),linear-gradient(45deg,rgba(255,255,255,.12)25%,transparent 25%,transparent 75%,rgba(255,255,255,.12)75%);background-size:40px 40px;background-position:0 0,20px 20px;opacity:.35;pointer-events:none;z-index:0}
 
 .title-name-wrap{position:relative;width:100%;overflow:visible;z-index:3;padding-top:.5vh}
-.tama-pos{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;width:auto}
+.tama-pos{position:absolute;top:calc(50% + 80px);left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;width:auto}
 .tama-pos>*{pointer-events:auto}
 .tama-float{position:relative;z-index:30;pointer-events:auto;display:flex;justify-content:center;padding:0}
 
@@ -138,6 +138,7 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 /* On narrow viewports, the tamagotchi sits centered and covers most of the hero.
    Reposition the vinyl, stroopwafel, and bead letters so nothing is hidden
    behind the tamagotchi and the ART DIRECTOR beads don't overlap. */
+@media(max-width:768px){.tama-pos{top:50% !important}}
 /* ===== MOBILE HERO LAYOUT OVERRIDES ===== */
 @media(max-width:768px){
   /* Vinyl: top-left, partially behind tamagotchi */
@@ -501,9 +502,9 @@ body::after{content:'';position:fixed;inset:0;z-index:99998;pointer-events:none;
 .contact-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,.1);font-family:var(--f-body);font-size:.8rem;font-weight:400;color:var(--gray);line-height:1.8;letter-spacing:-.01em;text-transform:none}
 
 /* ===== SECTION DIVIDERS ===== */
-.sec-divider{position:relative;z-index:5;pointer-events:none;line-height:0;overflow:hidden;height:clamp(48px,6vw,80px)}
-.sec-divider.hero-divider{height:clamp(80px,12vw,160px);margin-top:0;z-index:3}
-.sec-divider canvas{display:block;width:100%;height:100%}
+.sec-divider{position:relative;z-index:5;pointer-events:none;line-height:0;overflow:hidden;height:clamp(48px,6vw,80px);min-height:48px}
+.sec-divider.hero-divider{height:clamp(80px,12vw,160px);min-height:80px;margin-top:0;z-index:3}
+.sec-divider canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
 
 
 /* ===== SCROLL PROGRESS BAR ===== */
@@ -2375,35 +2376,38 @@ function PixelDivider({topColor, bottomColor, accentColor, pxSize=4, seed=0, cla
     const canvas = canvasRef.current;
     if(!container || !canvas) return;
 
+    // Parse a CSS color to RGB (cached)
+    const colCache = {};
+    const parseCol = (c)=>{
+      if(colCache[c]) return colCache[c];
+      const tmp = document.createElement('canvas');
+      tmp.width = tmp.height = 1;
+      const tx = tmp.getContext('2d');
+      tx.fillStyle = c;
+      tx.fillRect(0,0,1,1);
+      colCache[c] = Array.from(tx.getImageData(0,0,1,1).data);
+      return colCache[c];
+    };
+
     const draw = ()=>{
       const w = container.clientWidth;
       const h = container.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      if(w === 0 || h === 0) return;
+
+      // Render at 1px per logical block, CSS upscales via image-rendering:pixelated
+      const cols = Math.ceil(w / pxSize);
+      const rows = Math.ceil(h / pxSize);
+      canvas.width = cols;
+      canvas.height = rows;
 
       const ctx = canvas.getContext('2d');
       if(!ctx) return;
-
-      // Parse a CSS color to RGB
-      const parseCol = (c)=>{
-        const tmp = document.createElement('canvas');
-        tmp.width = tmp.height = 1;
-        const tx = tmp.getContext('2d');
-        tx.fillStyle = c;
-        tx.fillRect(0,0,1,1);
-        return Array.from(tx.getImageData(0,0,1,1).data);
-      };
-
-      const cols = Math.ceil(canvas.width / (pxSize * dpr));
-      const rows = Math.ceil(canvas.height / (pxSize * dpr));
-      const step = pxSize * dpr;
 
       // Seeded pseudo-random for consistent pattern
       let s = seed || 42;
       const rand = ()=>{ s=(s*16807+0)%2147483647; return(s&0x7fffffff)/0x7fffffff; };
 
-      // 4x4 Bayer matrix for ordered dithering (normalized 0-1)
+      // 4x4 Bayer matrix for ordered dithering
       const bayer = [
         [ 0/16, 8/16, 2/16,10/16],
         [12/16, 4/16,14/16, 6/16],
@@ -2411,133 +2415,81 @@ function PixelDivider({topColor, bottomColor, accentColor, pxSize=4, seed=0, cla
         [15/16, 7/16,13/16, 5/16]
       ];
 
+      const imgData = ctx.createImageData(cols, rows);
+      const d = imgData.data;
+
       if(blendTop) {
-        // blendTop mode: canvas is transparent, draw bottomColor pixels
-        // dissolving from bottom (dense) to top (sparse).
-        // The container's CSS background (e.g. grid pattern) shows through.
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         const botRGB = parseCol(bottomColor);
         const accentRGB = accentColor ? parseCol(accentColor) : null;
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = imgData.data;
-
-        // Top 35% is pure transparent (grid shows through untouched)
-        // Then gradual dithering from 35% → 100%
         const blendStart = 0.35;
 
         for(let cy=0; cy<rows; cy++){
           const t = cy / (rows - 1 || 1);
-          // Remap: 0 below blendStart, then smooth cubic ease-in from 0→1
           const remapped = t <= blendStart ? 0 : (t - blendStart) / (1 - blendStart);
-          const density = remapped * remapped * remapped; // cubic for very gentle start
-
-          if(density <= 0) continue; // skip fully transparent rows
+          const density = remapped * remapped * remapped;
+          if(density <= 0) continue;
 
           for(let cx=0; cx<cols; cx++){
-            const bx = cx % 4;
-            const by = cy % 4;
-            const threshold = bayer[by][bx];
-            const noise = rand() * 0.25;
-            const val = density + noise * 0.3;
+            const threshold = bayer[cy%4][cx%4];
+            const val = density + rand() * 0.075;
+            const idx = (cy * cols + cx) * 4;
 
             if(val > threshold) {
-              const ox = cx * step;
-              const oy = cy * step;
-              for(let py=oy; py<oy+step && py<canvas.height; py++){
-                const rowOff = py * canvas.width * 4;
-                for(let px=ox; px<ox+step && px<canvas.width; px++){
-                  const idx = rowOff + px * 4;
-                  d[idx]   = botRGB[0];
-                  d[idx+1] = botRGB[1];
-                  d[idx+2] = botRGB[2];
-                  d[idx+3] = 255;
-                }
-              }
+              d[idx]=botRGB[0]; d[idx+1]=botRGB[1]; d[idx+2]=botRGB[2]; d[idx+3]=255;
             } else if(accentRGB && val > threshold - 0.08 && rand() < 0.08) {
-              const ox = cx * step;
-              const oy = cy * step;
-              for(let py=oy; py<oy+step && py<canvas.height; py++){
-                const rowOff = py * canvas.width * 4;
-                for(let px=ox; px<ox+step && px<canvas.width; px++){
-                  const idx = rowOff + px * 4;
-                  d[idx]   = accentRGB[0];
-                  d[idx+1] = accentRGB[1];
-                  d[idx+2] = accentRGB[2];
-                  d[idx+3] = Math.round(255 * (0.3 + rand() * 0.35));
-                }
-              }
+              d[idx]=accentRGB[0]; d[idx+1]=accentRGB[1]; d[idx+2]=accentRGB[2]; d[idx+3]=Math.round(255*(0.3+rand()*0.35));
             }
           }
         }
-        ctx.putImageData(imgData, 0, 0);
       } else {
-        // Default mode: fill with bottomColor, overlay topColor dissolving top→bottom
-        ctx.fillStyle = bottomColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         const topRGB = parseCol(topColor);
+        const botRGB = parseCol(bottomColor);
         const accentRGB = accentColor ? parseCol(accentColor) : null;
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const d = imgData.data;
+
+        // Fill with bottomColor first
+        for(let i=0; i<d.length; i+=4){
+          d[i]=botRGB[0]; d[i+1]=botRGB[1]; d[i+2]=botRGB[2]; d[i+3]=255;
+        }
 
         for(let cy=0; cy<rows; cy++){
           const t = cy / (rows - 1 || 1);
           const density = 1 - t * t;
 
           for(let cx=0; cx<cols; cx++){
-            const bx = cx % 4;
-            const by = cy % 4;
-            const threshold = bayer[by][bx];
-            const noise = rand() * 0.35;
-            const val = density + noise * 0.5;
+            const threshold = bayer[cy%4][cx%4];
+            const val = density + rand() * 0.175;
+            const idx = (cy * cols + cx) * 4;
 
             if(val > threshold + 0.08) {
-              const ox = cx * step;
-              const oy = cy * step;
-              for(let py=oy; py<oy+step && py<canvas.height; py++){
-                const rowOff = py * canvas.width * 4;
-                for(let px=ox; px<ox+step && px<canvas.width; px++){
-                  const idx = rowOff + px * 4;
-                  d[idx]   = topRGB[0];
-                  d[idx+1] = topRGB[1];
-                  d[idx+2] = topRGB[2];
-                  d[idx+3] = 255;
-                }
-              }
+              d[idx]=topRGB[0]; d[idx+1]=topRGB[1]; d[idx+2]=topRGB[2]; d[idx+3]=255;
             } else if(accentRGB && val > threshold - 0.05 && rand() < 0.12) {
-              const ox = cx * step;
-              const oy = cy * step;
-              for(let py=oy; py<oy+step && py<canvas.height; py++){
-                const rowOff = py * canvas.width * 4;
-                for(let px=ox; px<ox+step && px<canvas.width; px++){
-                  const idx = rowOff + px * 4;
-                  d[idx]   = accentRGB[0];
-                  d[idx+1] = accentRGB[1];
-                  d[idx+2] = accentRGB[2];
-                  d[idx+3] = Math.round(255 * (0.4 + rand() * 0.4));
-                }
-              }
+              d[idx]=accentRGB[0]; d[idx+1]=accentRGB[1]; d[idx+2]=accentRGB[2]; d[idx+3]=Math.round(255*(0.4+rand()*0.4));
             }
           }
         }
-        ctx.putImageData(imgData, 0, 0);
       }
+
+      ctx.putImageData(imgData, 0, 0);
     };
 
+    // Debounced resize handler
+    let resizeTimer;
+    const debouncedDraw = ()=>{ clearTimeout(resizeTimer); resizeTimer = setTimeout(draw, 100); };
+
     draw();
-    const ro = new ResizeObserver(draw);
+    const ro = new ResizeObserver(debouncedDraw);
     ro.observe(container);
-    return ()=> ro.disconnect();
+    return ()=>{ ro.disconnect(); clearTimeout(resizeTimer); };
   },[topColor, bottomColor, accentColor, pxSize, seed, blendTop]);
 
   return (
-    <div ref={containerRef} className={`sec-divider ${className}`}>
+    <div ref={containerRef} className={`sec-divider ${className}`} style={{background: blendTop ? 'transparent' : bottomColor}}>
       <canvas ref={canvasRef} style={{imageRendering:'pixelated'}}/>
     </div>
   );
 }
 
-// ===== FLICKERING GRID BACKGROUND (optimized with ImageData) =====
+// ===== FLICKERING GRID BACKGROUND (optimized — 1px-per-cell canvas, CSS upscaled) =====
 function FlickeringGrid({squareSize=4, gridGap=6, flickerChance=0.3, color='rgb(0,0,0)', maxOpacity=0.3, style={}}) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -2562,23 +2514,22 @@ function FlickeringGrid({squareSize=4, gridGap=6, flickerChance=0.3, color='rgb(
     const ctx = canvas.getContext('2d');
     if(!ctx) return;
     let animId;
-    const FPS_INTERVAL = 1000/12; // cap at 12fps for perf
+    const FPS_INTERVAL = 1000/8; // cap at 8fps for perf
     let lastDraw = 0;
 
     const setup = ()=>{
       const w = container.clientWidth;
       const h = container.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio||1, 2);
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
+      if(w === 0 || h === 0) return;
       const step = squareSize + gridGap;
       const cols = Math.floor(w / step);
       const rows = Math.floor(h / step);
+      // 1 pixel per cell — CSS handles upscaling
+      canvas.width = cols;
+      canvas.height = rows;
       const opacities = new Float32Array(cols * rows);
       for(let i=0;i<opacities.length;i++) opacities[i] = Math.random() * maxOpacity;
-      gridState.current = {cols, rows, opacities, dpr, w: canvas.width, h: canvas.height, step};
+      gridState.current = {cols, rows, opacities};
     };
     setup();
 
@@ -2589,46 +2540,37 @@ function FlickeringGrid({squareSize=4, gridGap=6, flickerChance=0.3, color='rgb(
       lastDraw = now;
       const g = gridState.current;
       if(!g) return;
-      const {cols, rows, opacities, dpr, w, h, step} = g;
-      const imgData = ctx.createImageData(w, h);
+      const {cols, rows, opacities} = g;
+      const imgData = ctx.createImageData(cols, rows);
       const d = imgData.data;
-      const sz = Math.round(squareSize * dpr);
-      const st = Math.round(step * dpr);
       const [r,gv,b] = rgb;
       // Flicker a subset
       for(let i=0;i<opacities.length;i++){
         if(Math.random() < flickerChance * 0.08) opacities[i] = Math.random() * maxOpacity;
       }
-      // Write pixels via ImageData (much faster than fillRect per cell)
-      for(let ci=0;ci<cols;ci++){
-        for(let ri=0;ri<rows;ri++){
-          const a = Math.round(opacities[ci*rows+ri]*255);
-          if(a < 2) continue;
-          const ox = ci * st;
-          const oy = ri * st;
-          for(let py=oy;py<oy+sz&&py<h;py++){
-            const rowOff = py * w * 4;
-            for(let px=ox;px<ox+sz&&px<w;px++){
-              const idx = rowOff + px * 4;
-              d[idx]=r; d[idx+1]=gv; d[idx+2]=b; d[idx+3]=a;
-            }
-          }
-        }
+      // 1 pixel per cell — no inner loops needed
+      for(let i=0;i<opacities.length;i++){
+        const a = Math.round(opacities[i]*255);
+        if(a < 2) continue;
+        const idx = i * 4;
+        d[idx]=r; d[idx+1]=gv; d[idx+2]=b; d[idx+3]=a;
       }
       ctx.putImageData(imgData, 0, 0);
     };
 
-    const ro = new ResizeObserver(()=> setup());
+    let resizeTimer;
+    const debouncedSetup = ()=>{ clearTimeout(resizeTimer); resizeTimer = setTimeout(setup, 150); };
+    const ro = new ResizeObserver(debouncedSetup);
     ro.observe(container);
     const io = new IntersectionObserver(([e])=>{ inView.current = e.isIntersecting; },{threshold:0});
     io.observe(canvas);
     animId = requestAnimationFrame(draw);
-    return ()=>{ cancelAnimationFrame(animId); ro.disconnect(); io.disconnect(); };
+    return ()=>{ cancelAnimationFrame(animId); ro.disconnect(); io.disconnect(); clearTimeout(resizeTimer); };
   },[rgb, squareSize, gridGap, flickerChance, maxOpacity]);
 
   return (
     <div ref={containerRef} style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none',...style}}>
-      <canvas ref={canvasRef} style={{display:'block',pointerEvents:'none'}}/>
+      <canvas ref={canvasRef} style={{display:'block',width:'100%',height:'100%',imageRendering:'pixelated',pointerEvents:'none'}}/>
     </div>
   );
 }
@@ -3713,8 +3655,8 @@ function CustomCursor() {
     const tick = ()=>{
       x += (tx-x)*0.4; y += (ty-y)*0.4;
       el.style.transform = `translate(${x}px,${y}px)`;
-      // Check section color every 10 frames instead of every mousemove
-      if(++hitFrame % 10 === 0){
+      // Check section color every 30 frames instead of every mousemove
+      if(++hitFrame % 30 === 0){
         const under = document.elementFromPoint(tx, ty);
         setOnFushia(!!under && !!under.closest('.exp-sec'));
       }
